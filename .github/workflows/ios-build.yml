@@ -37,6 +37,8 @@ jobs:
       - name: 📱 Añadir plataforma iOS
         run: |
           set -x
+          # Aseguramos estado limpio: si ios/ ya existe (p.ej. quedó comiteada de antes), la borramos
+          rm -rf ios
           node "$CAP_BIN" add ios
           echo "exit code cap add ios: $?"
 
