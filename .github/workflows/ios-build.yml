@@ -16,67 +16,35 @@ jobs:
       - name: 🔧 Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: 📦 Instalar Capacitor
         run: |
-          set -x
           npm install @capacitor/core @capacitor/ios @capacitor/cli
-          echo "exit code npm install: $?"
-          # Arreglo: los binarios de node_modules/.bin a veces quedan sin permiso de ejecución
-          chmod +x node_modules/.bin/*
-          ls -l node_modules/.bin/cap
+          # 🔑 Reparar permisos de los ejecutables de Capacitor
+          chmod +x node_modules/.bin/cap
+          chmod +x node_modules/.bin/capacitor
 
       - name: ⚙️ Inicializar Capacitor
         run: |
-          set -x
           npx cap init LLevitrae com.llevitrae.app --web-dir=www
-          echo "exit code cap init: $?"
 
       - name: 📱 Añadir plataforma iOS
-        run: |
-          set -x
-          npx cap add ios
-          echo "exit code cap add ios: $?"
+        run: npx cap add ios
 
       - name: 🔄 Sincronizar con Capacitor
-        run: |
-          set -x
-          npx cap sync ios
-          echo "exit code cap sync: $?"
-
-      - name: 🔧 Configurar Xcode
-        run: |
-          set -x
-          sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
-          sudo xcodebuild -run-first-launch
-          echo "exit code xcode setup: $?"
-
-      - name: 🧩 Instalar CocoaPods y dar permisos a todos los scripts
-        run: |
-          set -x
-          cd ios/App
-          which pod || sudo gem install cocoapods
-          pod install --repo-update
-          echo "exit code pod install: $?"
-          find . -type f -name "*.sh" -exec chmod +x {} \;
-          echo "--- scripts .sh encontrados y su permiso ---"
-          find . -type f -name "*.sh" -exec ls -l {} \;
+        run: npx cap sync ios
 
       - name: 🏗️ Compilar app iOS
         run: |
-          set -x
           cd ios/App
-          xcodebuild clean build \
-            -workspace App.xcworkspace \
+          xcodebuild -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
             -derivedDataPath build \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGN_IDENTITY='' \
+            CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
-          echo "exit code xcodebuild: $?"
 
       - name: 📦 Empaquetar IPA
         run: |
