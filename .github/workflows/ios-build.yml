@@ -1,0 +1,51 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Permite ejecutar manualmente
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: 📥 Descargar código
+        uses: actions/checkout@v4
+
+      - name: 🔧 Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 📦 Instalar Capacitor
+        run: |
+          npm install @capacitor/core @capacitor/ios @capacitor/cli
+
+      - name: 🔄 Sincronizar con Capacitor
+        run: npx cap sync ios
+
+      - name: 🏗️ Compilar app iOS
+        run: |
+          cd ios/App
+          xcodebuild clean build \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: 📦 Empaquetar IPA
+        run: |
+          mkdir -p Payload
+          cp -r ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -r LLevitrae.ipa Payload
+
+      - name: 📤 Subir IPA como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LLevitrae-iOS
+          path: LLevitrae.ipa
+          retention-days: 7
