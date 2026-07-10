@@ -16,15 +16,17 @@ jobs:
       - name: 🔧 Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: 📦 Instalar Capacitor
         run: |
           set -x
           npm install @capacitor/core @capacitor/ios @capacitor/cli
           echo "exit code npm install: $?"
-          # Ubicamos el script real del CLI, evitando depender del symlink de .bin
-          CAP_BIN="node_modules/@capacitor/cli/bin/cap"
+          # Detectamos la ruta real del bin en vez de asumirla fija (puede variar entre versiones)
+          CAP_BIN=$(node -e "console.log(require.resolve('@capacitor/cli/package.json'))" | xargs dirname)
+          CAP_BIN_FILE=$(node -e "const p=require('$CAP_BIN/package.json'); console.log(typeof p.bin==='string'?p.bin:p.bin.cap)")
+          CAP_BIN="$CAP_BIN/$CAP_BIN_FILE"
           ls -l "$CAP_BIN"
           echo "CAP_BIN=$CAP_BIN" >> "$GITHUB_ENV"
 
