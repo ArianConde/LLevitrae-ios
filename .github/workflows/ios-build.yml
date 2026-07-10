@@ -3,11 +3,11 @@ name: Build iOS App
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # Permite ejecutar manualmente
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14  # Usa macOS 14 (estable)
 
     steps:
       - name: 📥 Descargar código
@@ -16,11 +16,18 @@ jobs:
       - name: 🔧 Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'  # Versión estable
 
       - name: 📦 Instalar Capacitor
         run: |
           npm install @capacitor/core @capacitor/ios @capacitor/cli
+
+      - name: ⚙️ Inicializar Capacitor
+        run: |
+          npx cap init LLevitrae com.llevitrae.app --web-dir=www
+
+      - name: 📱 Añadir plataforma iOS
+        run: npx cap add ios
 
       - name: 🔄 Sincronizar con Capacitor
         run: npx cap sync ios
