@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14  # Usa una versión estable de macOS
+    runs-on: macos-14
 
     steps:
       - name: 📥 Descargar código
@@ -16,7 +16,7 @@ jobs:
       - name: 🔧 Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'  # Versión LTS estable
+          node-version: '18'
 
       - name: 📦 Instalar Capacitor
         run: |
@@ -32,23 +32,27 @@ jobs:
       - name: 🔄 Sincronizar con Capacitor
         run: npx cap sync ios
 
-      - name: 🔧 Configurar permisos de Xcode
+      - name: 🔧 Configurar Xcode y permisos
         run: |
           sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
           sudo xcodebuild -run-first-launch
+          # Dar permisos de ejecución a los scripts de CocoaPods
+          chmod +x ios/App/Pods/*.sh || true
+          chmod +x ios/App/*.sh || true
 
       - name: 🏗️ Compilar app iOS
         run: |
           cd ios/App
-          xcodebuild clean build \
+          # Usar bash explícitamente para ejecutar xcodebuild
+          bash -c "xcodebuild clean build \
             -workspace App.xcworkspace \
             -scheme App \
             -configuration Release \
             -derivedDataPath build \
             -destination 'generic/platform=iOS' \
-            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_IDENTITY='' \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO"
 
       - name: 📦 Empaquetar IPA
         run: |
