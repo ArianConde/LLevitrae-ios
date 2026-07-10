@@ -32,18 +32,24 @@ jobs:
       - name: 🔄 Sincronizar con Capacitor
         run: npx cap sync ios
 
-      - name: 🔧 Configurar Xcode y permisos
+      - name: 🔧 Configurar Xcode
         run: |
           sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
           sudo xcodebuild -run-first-launch
-          # Dar permisos de ejecución a los scripts de CocoaPods
-          chmod +x ios/App/Pods/*.sh || true
-          chmod +x ios/App/*.sh || true
+
+      - name: 🧩 Instalar CocoaPods y dar permisos a todos los scripts
+        run: |
+          cd ios/App
+          # Aseguramos que los Pods estén instalados (por si cap sync no lo dejó completo)
+          pod install --repo-update || pod install
+          # Chmod recursivo a TODOS los .sh dentro de ios/App, no solo el primer nivel
+          find . -type f -name "*.sh" -exec chmod +x {} \;
+          # Por si acaso, también los binarios de Pods/ que a veces se invocan directo
+          find Pods -type f -perm -u+r ! -perm -u+x -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
 
       - name: 🏗️ Compilar app iOS
         run: |
           cd ios/App
-          # Usar bash explícitamente para ejecutar xcodebuild
           bash -c "xcodebuild clean build \
             -workspace App.xcworkspace \
             -scheme App \
