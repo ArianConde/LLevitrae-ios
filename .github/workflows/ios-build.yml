@@ -57,23 +57,24 @@ jobs:
           sudo xcodebuild -runFirstLaunch
           echo "exit code xcode setup: $?"
 
-      - name: 🧩 Instalar CocoaPods y dar permisos a todos los scripts
+      - name: 📦 Resolver dependencias Swift Package Manager
         run: |
           set -x
           cd ios/App
-          which pod || sudo gem install cocoapods
-          pod install --repo-update
-          echo "exit code pod install: $?"
-          find . -type f -name "*.sh" -exec chmod +x {} \;
-          echo "--- scripts .sh encontrados y su permiso ---"
-          find . -type f -name "*.sh" -exec ls -l {} \;
+          # Este proyecto usa SPM (Package.swift), no CocoaPods, así que no hay Podfile.
+          # Verificamos qué proyecto/workspace existe realmente antes de compilar.
+          ls -la
+          xcodebuild -resolvePackageDependencies \
+            -project App.xcodeproj \
+            -scheme App
+          echo "exit code resolvePackageDependencies: $?"
 
       - name: 🏗️ Compilar app iOS
         run: |
           set -x
           cd ios/App
           xcodebuild clean build \
-            -workspace App.xcworkspace \
+            -project App.xcodeproj \
             -scheme App \
             -configuration Release \
             -derivedDataPath build \
