@@ -57,6 +57,33 @@ jobs:
           sudo xcodebuild -runFirstLaunch
           echo "exit code xcode setup: $?"
 
+      - name: 🔧 Arreglar AppDelegate.swift
+        run: |
+          set -x
+          APP_DELEGATE="ios/App/App/AppDelegate.swift"
+          
+          # Verificar que el archivo existe
+          if [ -f "$APP_DELEGATE" ]; then
+            echo "📝 Archivo encontrado: $APP_DELEGATE"
+            cat "$APP_DELEGATE"
+            
+            # Crear una copia de seguridad
+            cp "$APP_DELEGATE" "$APP_DELEGATE.bak"
+            
+            # Corregir la línea problemática usando sed
+            # Buscar la línea con restorationHandler y reemplazarla
+            sed -i '' 's/ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)/ApplicationDelegateProxy.shared.application(application, continue: userActivity)/g' "$APP_DELEGATE"
+            
+            # Alternativa: Si el sed no funciona, usar un enfoque más robusto con perl
+            perl -i -pe 's/ApplicationDelegateProxy\.shared\.application\(application,\s*continue:\s*userActivity,\s*restorationHandler:\s*restorationHandler\)/ApplicationDelegateProxy.shared.application(application, continue: userActivity)/g' "$APP_DELEGATE"
+            
+            echo "✅ Archivo corregido:"
+            cat "$APP_DELEGATE"
+          else
+            echo "❌ No se encontró $APP_DELEGATE"
+            exit 1
+          fi
+
       - name: 📦 Resolver dependencias Swift Package Manager
         run: |
           set -x
