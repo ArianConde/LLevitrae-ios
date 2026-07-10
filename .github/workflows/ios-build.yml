@@ -54,7 +54,7 @@ jobs:
         run: |
           set -x
           sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
-          sudo xcodebuild -run-first-launch
+          sudo xcodebuild -runFirstLaunch
           echo "exit code xcode setup: $?"
 
       - name: 🧩 Instalar CocoaPods y dar permisos a todos los scripts
